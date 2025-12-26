@@ -159,7 +159,7 @@ void reshape(int w, int h)
 // update event
 void idle()
 {
-    if (rotation) {
+    if (rotation != nullptr) {
         angle += 0.01;
         rotation->angle = angle;
     }
