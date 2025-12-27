@@ -30,16 +30,7 @@ jobs:
           tar xzf $DOWNLOAD_FILE_COIN -C cmake_download_dir
           cmake -S . -B cmake_build_dir -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=cmake_install_dir -DCMAKE_PREFIX_PATH=cmake_download_dir/Coin3D
       - name: Build project
-        run: cmake --build cmake_build_dir --target install --config Release -- -j4
-      #- name: Run tests
-      #  run:  ctest -C Release -VV
-      #  working-directory: cmake_build_dir
-      - name: Create Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Ubuntu-Artifacts
-          path: cmake_install_dir/
-        if: always()
+        run: cmake --build cmake_build_dir --config Release -- -j4
 
 #  windows-build:
 #    name: Windows Build
