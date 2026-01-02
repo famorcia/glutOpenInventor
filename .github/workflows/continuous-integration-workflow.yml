@@ -16,21 +16,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Create build directory and run CMake
+      - name: Update and install dependencies
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install freeglut3-dev libboost-all-dev 
-          mkdir cmake_download_dir
-          DOWNLOAD_FILE_COIN=coin-latest-Ubuntu2204-gcc13-x64.tar.gz
-          RELEASE_ID=`curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/coin3d/coin/releases | jq -r --arg COIN_REPO_TAG_NAME "CI-builds" '.[] | select(.tag_name==$COIN_REPO_TAG_NAME) | .id'`
-          ASSET_ID=`curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/coin3d/coin/releases/$RELEASE_ID | jq -r --arg DOWNLOAD_FILE_COIN "$DOWNLOAD_FILE_COIN" '.assets[] | select(.name==$DOWNLOAD_FILE_COIN) | .id'`
-          export DOWNLOAD_ADDRESS_COIN=https://api.github.com/repos/coin3d/coin/releases/assets/$ASSET_ID
-          echo download file $DOWNLOAD_FILE_COIN from address $DOWNLOAD_ADDRESS_COIN
-          curl -s -S -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" -o $DOWNLOAD_FILE_COIN $DOWNLOAD_ADDRESS_COIN
-          tar xzf $DOWNLOAD_FILE_COIN -C cmake_download_dir
-          cmake -S . -B cmake_build_dir -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=cmake_install_dir -DCMAKE_PREFIX_PATH=cmake_download_dir/Coin3D
-      - name: Build project
-        run: cmake --build cmake_build_dir --config Release -- -j4
+          sudo apt-get -y install g++ freeglut3-dev git libboost-all-dev
+      - name: Download and install Coin3D
+        run: |
+          git clone --depth 1 --branch v4.0.6 https://github.com/coin3d/coin.git /tmp/coin_source_dir
+          cmake -S /tmp/coin_source_dir -B /tmp/coin_source_dir/coin_build_dir -DCOIN_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=11
+          sudo cmake --build /tmp/coin_source_dir/coin_build_dir --target install --config Release -- -j8
+      - name: Download and install fltk
+        run: |
+          git clone --depth 1 --branch release-1.4.4 https://github.com/fltk/fltk /tmp/fltk_source_dir
+          cmake -S /tmp/fltk_source_dir -B /tmp/fltk_source_dir/fltk_build_dir -DFLTK_BUILD_TEST=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=11 -DFLTK_BUILD_SHARED_LIBS=ON
+          sudo cmake --build /tmp/fltk_source_dir/fltk_build_dir --target install --config Release -- -j8
+      - name: Configure and build project
+        run: |
+          cmake -S . -B cmake_build_dir -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=cmake_install_dir
+          cmake --build cmake_build_dir  --config Release -- -j4
 
 #  windows-build:
 #    name: Windows Build
