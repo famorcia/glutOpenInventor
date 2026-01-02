@@ -12,3 +12,4 @@ pkg_check_modules (COIN3D Coin REQUIRED)
 include_directories(${COIN3D_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
 
 add_subdirectory(example1)
+add_subdirectory(from_glut-3.7)
